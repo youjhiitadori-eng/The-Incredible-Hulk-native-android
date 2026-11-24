@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.16)
+project(arc_dump CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_executable(arc_dump main.cpp)
+add_executable(model_dump model_dump.cpp)
