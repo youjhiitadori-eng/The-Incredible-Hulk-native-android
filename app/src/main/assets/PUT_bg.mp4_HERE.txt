@@ -1,0 +1,2 @@
+Taruh video latar menu di folder ini dengan nama persis: bg.mp4
+(MP4 H.264, 16:9, disarankan 720p, 10-20 detik, di bawah 20 MB). Lalu build ulang APK.
