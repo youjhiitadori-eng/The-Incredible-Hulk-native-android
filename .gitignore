@@ -1,0 +1,8 @@
+third_party/
+.gradle/
+build/
+app/build/
+.cxx/
+local.properties
+*.apk
+report.txt
