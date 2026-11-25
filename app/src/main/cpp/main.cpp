@@ -388,13 +388,13 @@ int main(int argc, char* argv[]) {
             video.update();
             bg(0.04f + 0.03f * sinf(t * 0.5f), 0.10f + 0.05f * sinf(t * 0.7f + 1.0f), 0.07f + 0.04f * sinf(t * 0.3f + 2.0f));
             glDisable(GL_SCISSOR_TEST);
-            video.draw(0.55f);
+            video.draw(0.45f);
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             float lb = std::max(2.0f, H * 0.004f);
 
             if (scene == Scene::Menu) {
-                rectTL(ui, W * 0.03f, H * 0.05f, W * 0.39f, H * 0.90f, 0.04f, 0.04f, 0.06f, 0.72f, W, H);
+                rectTL(ui, W * 0.03f, H * 0.05f, W * 0.39f, H * 0.90f, 0.04f, 0.04f, 0.06f, 0.82f, W, H);
                 outlineTL(ui, W * 0.03f, H * 0.05f, W * 0.39f, H * 0.90f, lb, 0.45f, 0.07f, 0.09f, 1.0f, W, H);
                 glUseProgram(prog2d);
                 glActiveTexture(GL_TEXTURE0);
@@ -410,6 +410,9 @@ int main(int argc, char* argv[]) {
                 float ps = H * 0.22f, bob = sinf(t * 1.5f) * H * 0.008f;
                 glUseProgram(prog2d);
                 drawImage(pp, W - ps - W * 0.04f, H * 0.06f + bob, ps, ps, (int)W, (int)H);
+                // indikator diagnosa (hilang kalau semua normal): merah = font gagal, oranye = shader gagal
+                if (!ui.fontOk) rectTL(ui, W * 0.95f, H * 0.93f, W * 0.03f, W * 0.03f, 1.0f, 0.0f, 0.0f, 1.0f, W, H);
+                if (!ui.shaderOk) rectTL(ui, W * 0.91f, H * 0.93f, W * 0.03f, W * 0.03f, 1.0f, 0.6f, 0.0f, 1.0f, W, H);
             } else {
                 rectTL(ui, W * 0.03f, H * 0.03f, W * 0.94f, H * 0.94f, 0.04f, 0.04f, 0.06f, 0.80f, W, H);
                 outlineTL(ui, W * 0.03f, H * 0.03f, W * 0.94f, H * 0.94f, lb, 0.45f, 0.07f, 0.09f, 1.0f, W, H);
