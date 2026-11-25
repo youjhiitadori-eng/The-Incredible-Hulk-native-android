@@ -67,19 +67,11 @@ static inline void drawImage(const Tex2D& t, float left, float top, float w, flo
              -1.0f + 2.0f * (left + w) / W, 1.0f - 2.0f * (top + h) / H);
 }
 
-// Muat PNG dari assets APK (app/src/main/assets/<name>).
-static inline bool loadAssetPng(const char* name, Tex2D& t) {
-    SDL_RWops* rw = SDL_RWFromFile(name, "rb");
-    if (!rw) { SDL_Log("Asset tidak ada: %s", name); return false; }
-    Sint64 sz = SDL_RWsize(rw);
-    if (sz <= 0) { SDL_RWclose(rw); return false; }
-    std::vector<unsigned char> buf((size_t)sz);
-    size_t got = SDL_RWread(rw, buf.data(), 1, (size_t)sz);
-    SDL_RWclose(rw);
-    if (got != (size_t)sz) return false;
+// Decode PNG dari memori menjadi tekstur GL.
+static inline bool loadPngMem(const unsigned char* data, size_t len, Tex2D& t) {
     int w = 0, h = 0, c = 0;
-    unsigned char* px = stbi_load_from_memory(buf.data(), (int)sz, &w, &h, &c, 4);
-    if (!px) { SDL_Log("Decode PNG gagal: %s", name); return false; }
+    unsigned char* px = stbi_load_from_memory(data, (int)len, &w, &h, &c, 4);
+    if (!px) { SDL_Log("Decode PNG gagal"); return false; }
     glGenTextures(1, &t.id);
     glBindTexture(GL_TEXTURE_2D, t.id);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -91,4 +83,17 @@ static inline bool loadAssetPng(const char* name, Tex2D& t) {
     stbi_image_free(px);
     t.w = w; t.h = h;
     return true;
+}
+
+// Muat PNG dari assets APK (app/src/main/assets/<name>).
+static inline bool loadAssetPng(const char* name, Tex2D& t) {
+    SDL_RWops* rw = SDL_RWFromFile(name, "rb");
+    if (!rw) { SDL_Log("Asset tidak ada: %s", name); return false; }
+    Sint64 sz = SDL_RWsize(rw);
+    if (sz <= 0) { SDL_RWclose(rw); return false; }
+    std::vector<unsigned char> buf((size_t)sz);
+    size_t got = SDL_RWread(rw, buf.data(), 1, (size_t)sz);
+    SDL_RWclose(rw);
+    if (got != (size_t)sz) return false;
+    return loadPngMem(buf.data(), buf.size(), t);
 }
