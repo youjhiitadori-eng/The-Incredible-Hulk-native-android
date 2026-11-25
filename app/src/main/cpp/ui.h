@@ -9,6 +9,7 @@
 #include <vector>
 #include "gfx.h"
 #include "font_data.h"
+#include "font_atlas.h"
 
 // ---------------- pengaturan ----------------
 enum { ROW_RES, ROW_FPS, ROW_ASPECT, ROW_HZ, ROW_TEX, ROW_SHOWFPS, ROW_VIDEO, ROW_COUNT };
@@ -58,8 +59,20 @@ struct UiGl {
     GLuint solid = 0, text = 0;
     GLint uSolidColor = -1, uTextColor = -1, uTextTex = -1;
     Tex2D font;
-    bool fontOk = false;
+    bool fontOk = false;      // atlas font ter-decode
+    bool shaderOk = false;    // program solid + teks berhasil di-link
 };
+
+static inline bool linked(GLuint p) {
+    GLint ok = 0;
+    glGetProgramiv(p, GL_LINK_STATUS, &ok);
+    if (!ok) {
+        char log[512];
+        glGetProgramInfoLog(p, sizeof(log), nullptr, log);
+        SDL_Log("Link program gagal: %s", log);
+    }
+    return ok != 0;
+}
 
 static inline void initUi(UiGl& u) {
     const char* fsSolid = "precision mediump float; uniform vec4 uColor; void main(){ gl_FragColor = uColor; }\n";
@@ -71,7 +84,9 @@ static inline void initUi(UiGl& u) {
     u.text = linkProgram(VS_2D, fsText);
     u.uTextColor = glGetUniformLocation(u.text, "uColor");
     u.uTextTex = glGetUniformLocation(u.text, "uTex");
-    u.fontOk = loadAssetPng("font.png", u.font);
+    u.fontOk = loadPngMem(FONT_PNG, FONT_PNG_LEN, u.font);  // atlas ditanam di kode
+    u.shaderOk = linked(u.solid) && linked(u.text);
+    SDL_Log("UI: font=%d shader=%d atlas=%dx%d", (int)u.fontOk, (int)u.shaderOk, u.font.w, u.font.h);
 }
 
 static inline float ndcX(float x, float W) { return -1.0f + 2.0f * x / W; }
