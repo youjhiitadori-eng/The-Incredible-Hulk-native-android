@@ -63,6 +63,26 @@ struct UiGl {
     bool shaderOk = false;    // program solid + teks berhasil di-link
 };
 
+// Decoder base64 kecil (atlas font ditanam sebagai teks base64)
+static inline std::vector<unsigned char> b64decode(const char* s) {
+    std::vector<unsigned char> out;
+    unsigned val = 0;
+    int bits = -8;
+    for (; *s; ++s) {
+        int c = (unsigned char)*s, d;
+        if (c >= 'A' && c <= 'Z') d = c - 'A';
+        else if (c >= 'a' && c <= 'z') d = c - 'a' + 26;
+        else if (c >= '0' && c <= '9') d = c - '0' + 52;
+        else if (c == '+') d = 62;
+        else if (c == '/') d = 63;
+        else continue;
+        val = (val << 6) | (unsigned)d;
+        bits += 6;
+        if (bits >= 0) { out.push_back((unsigned char)((val >> bits) & 0xFF)); bits -= 8; }
+    }
+    return out;
+}
+
 static inline bool linked(GLuint p) {
     GLint ok = 0;
     glGetProgramiv(p, GL_LINK_STATUS, &ok);
@@ -78,13 +98,15 @@ static inline void initUi(UiGl& u) {
     const char* fsSolid = "precision mediump float; uniform vec4 uColor; void main(){ gl_FragColor = uColor; }\n";
     const char* fsText =
         "precision mediump float; varying vec2 vUV; uniform sampler2D uTex; uniform vec4 uColor;\n"
-        "void main(){ float a = texture2D(uTex, vUV).a; gl_FragColor = vec4(uColor.rgb, uColor.a * a); }\n";
+        "void main(){ float a = texture2D(uTex, vUV).r; gl_FragColor = vec4(uColor.rgb, uColor.a * a); }\n";
     u.solid = linkProgram(VS_2D, fsSolid);
     u.uSolidColor = glGetUniformLocation(u.solid, "uColor");
     u.text = linkProgram(VS_2D, fsText);
     u.uTextColor = glGetUniformLocation(u.text, "uColor");
     u.uTextTex = glGetUniformLocation(u.text, "uTex");
-    u.fontOk = loadPngMem(FONT_PNG, FONT_PNG_LEN, u.font);  // atlas ditanam di kode
+    static_assert(FONT_B64_COMPLETE == 1, "font_atlas.h terpotong, upload ulang filenya");
+    std::vector<unsigned char> png = b64decode(FONT_B64);
+    u.fontOk = !png.empty() && loadPngMem(png.data(), png.size(), u.font);  // atlas ditanam di kode (grayscale: kanal R = cakupan huruf)
     u.shaderOk = linked(u.solid) && linked(u.text);
     SDL_Log("UI: font=%d shader=%d atlas=%dx%d", (int)u.fontOk, (int)u.shaderOk, u.font.w, u.font.h);
 }
